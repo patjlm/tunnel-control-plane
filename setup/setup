@@ -1,0 +1,8 @@
+#!/bin/bash
+
+NS=${1:-"tunnel-control-plane"}
+
+oc get ns "${NS}" || \
+    oc new-project "${NS}" --description="tunnel-control-plane POC for IBM (Patrick)"
+oc apply -n "${NS}" -f "$(dirname $0)/setup.yaml"
+oc serviceaccounts get-token -n "${NS}" tunnel-control-plane

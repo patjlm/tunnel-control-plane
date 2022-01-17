@@ -1,0 +1,32 @@
+# ---
+# apiVersion: v1
+# kind: Namespace
+# metadata:
+#   name: tunnel-control-plane
+#   annotations:
+#     description: 'tunnel-control-plane POC for IBM (Patrick)'
+# spec:
+#   finalizers:
+#   - kubernetes
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: tunnel-control-plane
+  # namespace: tunnel-control-plane
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: tunnel-control-plane
+  # namespace: tunnel-control-plane
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: edit
+subjects:
+- kind: ServiceAccount
+  name: tunnel-control-plane
+  namespace: tunnel-control-plane

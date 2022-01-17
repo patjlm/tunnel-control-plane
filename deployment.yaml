@@ -1,0 +1,64 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  name: tunnel-access
+objects:
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    labels:
+      app: tunnel-access
+      deployment: tunnel-access-${ROUTE_ID}
+    name: tunnel-access-${ROUTE_ID}
+  spec:
+    replicas: 1
+    selector:
+      matchLabels:
+        deployment: tunnel-access-${ROUTE_ID}
+    strategy:
+      type: RollingUpdate
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          app: tunnel-access
+          deployment: tunnel-access-${ROUTE_ID}
+      spec:
+        containers:
+        - image: quay.io/app-sre/diag-container:latest
+          name: tunnel-access
+          command: 
+          - bash
+          - -c
+          - |
+            set -e
+            curl -sSL -o /opt/cloudflared https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64
+            chmod +x /opt/cloudflared
+            /opt/cloudflared access tcp --hostname ${ROUTE_HOSTNAME} --url 0.0.0.0:10000
+          imagePullPolicy: Always
+          resources: {}
+          volumeMounts:
+          - mountPath: /opt
+            name: opt
+        volumes:
+        - emptyDir: {}
+          name: opt
+- apiVersion: v1
+  kind: Service
+  metadata:
+    labels:
+      app: tunnel-access
+      deployment: tunnel-access-${ROUTE_ID}
+    name: tunnel-access-${ROUTE_ID}
+  spec:
+    type: ClusterIP
+    selector:
+      deployment: tunnel-access-${ROUTE_ID}
+    ports:
+    - port: 10000
+      protocol: TCP
+parameters:
+- name: ROUTE_ID
+  required: true
+- name: ROUTE_HOSTNAME
+  required: true

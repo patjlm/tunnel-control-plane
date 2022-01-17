@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: diag
+  name: diag
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      deployment: diag
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        deployment: diag
+    spec:
+      containers:
+      - image: quay.io/app-sre/diag-container:latest
+        imagePullPolicy: Always
+        name: diag
+        resources: {}

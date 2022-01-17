@@ -1,0 +1,3 @@
+#!/bin/bash
+
+cloudflared tunnel --config tunnel/tunnel-control-plane.yaml run --credentials-file tunnel/c574eb90-144d-4379-ab68-fb614a265847.json tunnel-control-plane

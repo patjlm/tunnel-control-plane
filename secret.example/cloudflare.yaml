@@ -1,0 +1,21 @@
+zone: <your dns zone name>
+
+# token created on https://dash.cloudflare.com/profile/api-tokens
+# with permission to Edit Zone.DNS on our zone
+token: ...
+# token can be checked with
+# curl -X GET "https://api.cloudflare.com/client/v4/user/tokens/verify" \
+#      -H "Authorization: Bearer $TOKEN" \
+#      -H "Content-Type:application/json"
+
+# cloudflared cert to call the tunnel API. Obtained with `cloudflared tunnel login`
+cert: secret/cloudflared-cert.pem
+
+# suffix for our dns records. Should be the same as tehzone setting. TODO: remove
+dns_suffix: zeeweb.xyz
+
+# location of the kubeconfig file used to spawn cloudflared-access pods
+# towards tcp endpoint tunnels (tunnel-access pods).
+kubeconfig: secret/kubeconfig
+# the namespace in which to deploy tunnel-access pods
+namespace: tunnel-control-plane

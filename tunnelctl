@@ -1,0 +1,78 @@
+#!/bin/bash
+
+usage() {
+    echo "Usage:"
+    echo "Please export an environment variable USERPASS with you user & password in the form username:password"
+    echo "- $0 list                   List all configured tunnels"
+    echo "- $0 create                 Creates a new tunne configuration"
+    echo "- $0 create TUNNEL SERVICE  Configures a new route for the service SERVICE within the tunnel TUNNEL"
+    echo "- $0 delete TUNNEL          Deletes the configuration for TUNNEL"
+    echo "- $0 delete TUNNEL SERVICE  Deletes the routes for service SERVICE in the tunnel TUNNEL configuration"
+}
+
+errcho() { >&2 echo "$@"; }
+
+if [[ -z $USERPASS ]] ; then
+    errcho "Missing env var USERPASS containing user and password in the form user:password"
+    usage
+    exit 1
+fi
+
+missing_param() {
+    errcho "Missing parameter: $1"
+    usage
+    exit 1
+}
+
+# default value for the control plane.
+# Can be overriden by setting the CONTROL_PLANE env var 
+: "${CONTROL_PLANE:=tunnel-control-plane.zeeweb.xyz}"
+URL=https://${USERPASS}@${CONTROL_PLANE}
+
+ACTION=${1:-list}
+TUNNEL=$2
+SERVICE=$3
+case $ACTION in
+    help|--help|-h)
+        usage
+        exit 0
+        ;;
+    list)
+        curl "${URL}/tunnels"
+        ;;
+    credentials)
+        [[ -z $TUNNEL ]] && missing_param TUNNEL
+        curl "${URL}/tunnels/$TUNNEL/credentials"
+        ;;
+    config)
+        [[ -z $TUNNEL ]] && missing_param TUNNEL
+        curl "${URL}/tunnels/$TUNNEL/config"
+        ;;
+    create)
+        if [[ -z $TUNNEL ]] ; then
+            errcho "Creating new tunnel configuration"
+            curl -X POST "${URL}/tunnels"
+        elif [[ -z $SERVICE ]] ; then
+            missing_param SERVICE
+        else
+            errcho "Creating route for service ${SERVICE} in tunnel ${TUNNEL}"
+            curl -X POST "${URL}/tunnels/${TUNNEL}/routes?service=${SERVICE}"
+            errcho "Please restart any running instance of your tunnel with the new configuration"
+        fi
+        ;;
+    delete)
+        [[ -z $TUNNEL ]] && missing_param TUNNEL
+        if [[ -z $SERVICE ]] ; then
+            errcho "Deleting tunnel ${TUNNEL} ..."
+            curl -X DELETE "${URL}/tunnels/${TUNNEL}"
+        else
+            errcho "Deleting route for service ${SERVICE} in tunnel ${TUNNEL} ..."
+            curl -X DELETE "${URL}/tunnels/${TUNNEL}/routes?service=${SERVICE}"
+        fi
+        ;;
+    *)
+        errcho "unknown action: '$ACTION'"
+        usage
+        exit 1
+        ;;
+esac
