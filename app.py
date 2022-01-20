@@ -2,7 +2,6 @@ import json
 import flask
 from flask import Flask, abort, request, make_response, jsonify
 from flask_httpauth import HTTPBasicAuth
-import yaml
 
 import cloudflare_tunnel
 

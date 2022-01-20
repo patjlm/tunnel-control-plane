@@ -137,7 +137,7 @@ def delete_routes(user, name, service):
         if ingress['service'] == service:
             hostname = ingress['hostname']
             if service.startswith('tcp://'):
-                openshift.remove_access(name, hostname.split('.')[0])
+                openshift.remove_access(hostname.split('.')[0])
             dns.delete(hostname)
         else:
             new_ingresses.append(ingress)
