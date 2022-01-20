@@ -121,5 +121,7 @@ The manifests can be seen in [deployment.yaml](deployment.yaml).
 
 With this in place, the cloud-based service can reach out to the newly created kubernetes service named `tunnel-access-${ROUTE_NAME}-${TUNNEL_NAME}`, on port 10000 (exposed by the access pod and the service, hardcoded in [deployment.yaml](deployment.yaml)). The traffic will be routed towards the tunnel endpoint, through it, and down to the end-user private tcp service endpoint for that route
 
+![TCP access](tcp-access.png "TCP access")
+
 # Other consideration
 It would also be possible to restrict access to the tunnel entrypoints if we knew what were the sources of traffic. This would be done by configuring cloudflare firewall rules during `tunnelctl create TUNNEL SERVICE` calls (on the control plane side of course).
