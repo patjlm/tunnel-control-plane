@@ -14,7 +14,7 @@ DNS records for the routes created y the users
   - [Get the tunnel configuration](#get-the-tunnel-configuration)
   - [Run the tunnel](#run-the-tunnel)
 - [Access of a TCP endpoint](#access-of-a-tcp-endpoint)
-- [other consideration](#other-consideration)
+- [Other consideration](#other-consideration)
 
 # Configuring the server
 * create a `secret` folder containing
@@ -106,6 +106,8 @@ It's a bit trickier for the tcp endpoint because something needs to run on the c
 
 *Note*: The configuration must be regenerated and the tunnel restarted for each new route being created 
 
+![overview](overview.png "Overview")
+
 # Access of a TCP endpoint
 We're not on the user machine anymore. We're now considering what happens on the
 cloud service which needs to access the endpoints created by the user.
@@ -117,7 +119,7 @@ endpoint, runs on Openshift. For each new 'route' to a tcp endpoint, the control
 
 The manifests can be seen in [deployment.yaml](deployment.yaml).
 
-With this in place, the cloud-based service can reach out to the newly created service and the traffic will be routed towards the tunnel endpoint, through it, and down to the end-user private tcp service endpoint
+With this in place, the cloud-based service can reach out to the newly created kubernetes service named `tunnel-access-${ROUTE_NAME}-${TUNNEL_NAME}`, on port 10000 (exposed by the access pod and the service, hardcoded in [deployment.yaml](deployment.yaml)). The traffic will be routed towards the tunnel endpoint, through it, and down to the end-user private tcp service endpoint for that route
 
-# other consideration
-It would also be possible to restrict access to the tunnel entrypoints if we new what were the sources of traffic. This would be done by configuring cloudflare firewall rules during `tunnelctl create TUNNEL SERVICE` calls (on the control plane side of course).
+# Other consideration
+It would also be possible to restrict access to the tunnel entrypoints if we knew what were the sources of traffic. This would be done by configuring cloudflare firewall rules during `tunnelctl create TUNNEL SERVICE` calls (on the control plane side of course).
