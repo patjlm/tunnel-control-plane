@@ -80,3 +80,6 @@ def delete_routes(name):
         'result': 'ok',
         'tunnel': tunnel,
     }
+
+if __name__ == '__main__':
+    app.run()

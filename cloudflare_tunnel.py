@@ -11,16 +11,20 @@ from config import cfg
 from cloudflare import cloudflare_cli
 from cloudflare_dns import Dns
 
+from app import app
+
 import openshift
 
 cert = Path(cfg.cert)
 
 def tunnel_exists(name):
-    p = subprocess.run([
+    cmd = [
         'cloudflared', 'tunnel',
         '--origincert', cert,
         'info', name,
-    ])
+    ]
+    app.logger.info(' '.join(map(str, cmd)))
+    p = subprocess.run(cmd)
     return p.returncode == 0
 
 def random_name(len=8):
@@ -56,13 +60,15 @@ def tunnel_info(user, name):
 def create(user: str) -> str:
     name = new_tunnel_name()
     _, credentials, _ = files_for(user, name, create=True)
-    p = subprocess.run([
+    cmd = [
         'cloudflared', 'tunnel',
         '--origincert', cert,
         'create', '--credentials-file', credentials, name,
-    ])
+    ]
+    app.logger.info(' '.join(map(str, cmd)))
+    p = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
     if p.returncode > 0:
-        raise Exception('Could not create tunnel', p.stdout, p.stderr)
+        raise Exception('Could not create tunnel', p.stdout)
     tunnel_id = json.load(open(credentials))['TunnelID']
     config = {
         'tunnel': tunnel_id,
@@ -85,13 +91,17 @@ def delete(user: str, name: str):
     for service in set([i['service'] for i in config['ingress']
                     if 'hostname' in i]):
         delete_routes(user, name, service)
-    p = subprocess.run([
+    cmd = [
         'cloudflared', 'tunnel',
         '--origincert', cert,
         'delete', name,
-    ])
+    ]
+    app.logger.info(' '.join(map(str, cmd)))
+    p = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
     if p.returncode == 0:
         shutil.rmtree(dir)
+    else:
+        app.logger.error(p.stdout)
     return p.returncode == 0
 
 def create_route(user: str, name: str, service: str):
@@ -104,11 +114,15 @@ def create_route(user: str, name: str, service: str):
         if hostname not in hostnames:
             break
     # dns.create_tunnel_cname(tunnel_id, hostname)
-    p = subprocess.run([
+    cmd = [
         'cloudflared', 'tunnel',
         '--origincert', cert,
         'route', 'dns', name, hostname,
-    ])
+    ]
+    app.logger.info(' '.join(map(str, cmd)))
+    p = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+    if p.returncode > 0:
+        raise Exception('Could not create route', p.stdout)
     config['ingress'] = [{'hostname': hostname, 'service': service}] + config['ingress']
     save_config(user, name, config)
     if service.startswith('tcp://'):
@@ -119,13 +133,6 @@ def hostnames_for_service(user, name, service):
     config = load_config(user, name)
     return [i['hostname'] for i in config['ingress']
             if i['service'] == service]
-
-def zone_records():
-    cli = cloudflare_cli()
-    zones = cli.zones.get()
-    zone = [z for z in zones if z['name'] == cfg.zone][0]
-    zoneid = zone['id']
-    return zoneid, cli.zones.dns_records.get(zoneid)
 
 def delete_routes(user, name, service):
     dns = Dns()
