@@ -17,7 +17,7 @@ def setup_access(route_id, hostname):
     p = subprocess.run((
         f'oc --kubeconfig {kubeconfig} apply -n {cfg.namespace} -f -').split(),
         input=manifest, encoding='UTF-8',
-        stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True
+        stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True
     )
     if p.returncode > 0:
         app.logger.error(p.stdout)
@@ -29,7 +29,7 @@ def remove_access(route_id):
         f'oc --kubeconfig {kubeconfig} '
         f'delete -n {cfg.namespace} deployment,service '
         f'-l deployment=tunnel-access-{route_id}').split(),
-        stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True
+        stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True
     )
     if p.returncode > 0:
         app.logger.error(p.stdout)

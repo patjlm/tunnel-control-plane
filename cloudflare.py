@@ -49,7 +49,7 @@ class Tunnel():
 
     # https://api.cloudflare.com/#argo-tunnel-list-argo-tunnels
     def list_by_name(self, name: str):
-        self.logger.info(f'creating cloudflare tunnels by name {name}')
+        self.logger.info(f'listing cloudflare tunnels by name {name}')
         r = self.tunnels.get(cfg.account_id, params={'name': name})
         return [Tunnel(self.logger)._from_dict(t) for t in r]
 
@@ -94,8 +94,9 @@ class Dns():
     
     def create_cname(self, hostname, target, proxied=False):
         recordid = [r['id'] for r in self.records() if r['name'] == hostname]
+        name = hostname[:-len(f'.{cfg.zone}')]
         if len(recordid) == 0:
-            data = {'name': hostname.removesuffix(f'.{cfg.zone}'),
+            data = {'name': name,
                     'type': 'CNAME',
                     'content': target,
                     'proxied': proxied}
