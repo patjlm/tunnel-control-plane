@@ -4,10 +4,9 @@ import yaml
 
 @dataclass
 class Config():
+    account_id: str
     zone: str
     token: str
-    cert: str
-    dns_suffix: str
     kubeconfig: str
     namespace: str
 

@@ -20,9 +20,8 @@ DNS records for the routes created y the users
 * create a `secret` folder containing
   * create `secret/users.json` containing the list of user & passwords (yes, this is not secure. It's a POC)
   * cloudflare.yaml (see the example [config](secret.example/cloudflare.yaml))
-  * the cloudflared certificate you obtain by running `cloudflared tunnel login`
   * the kubeconfig used to access and deploy on openshift (with a service account)
-* setup your virtualenv
+* setup your virtualenv (python3 required)
   * `python3 -m venv venv`
   * `source venv/bin/activate`
   * `python3 -m pip install -r requirements.txt`
